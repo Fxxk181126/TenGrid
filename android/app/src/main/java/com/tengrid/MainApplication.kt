@@ -1,4 +1,4 @@
-package com.simpleapp
+package com.tengrid
 
 import android.app.Application
 import com.facebook.react.PackageList
