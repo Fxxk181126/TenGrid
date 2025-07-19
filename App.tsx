@@ -1,32 +1,19 @@
 /**
- * Simple React Native App - Hello World
+ * TenGrid World - 十方世界俄罗斯方块游戏
  * @format
  */
 
 import React from 'react';
-import { Text, View, StyleSheet, StatusBar } from 'react-native';
+import { StatusBar } from 'react-native';
+import { DragGameScreen } from './src/screens/DragGameScreen';
 
 function App() {
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
-      <Text style={styles.helloText}>Hello World</Text>
-    </View>
+    <>
+      <StatusBar barStyle="dark-content" backgroundColor="#F5F5F5" />
+      <DragGameScreen />
+    </>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#ffffff',
-  },
-  helloText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333333',
-  },
-});
 
 export default App;
