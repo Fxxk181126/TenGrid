@@ -24,7 +24,9 @@ export const DraggableBlockNew: React.FC<DraggableBlockNewProps> = ({
   initialX = 0,
   initialY = 0,
 }) => {
-  const pan = useRef(new Animated.ValueXY({ x: initialX, y: initialY })).current;
+  const pan = useRef(
+    new Animated.ValueXY({ x: initialX, y: initialY }),
+  ).current;
   const scale = useRef(new Animated.Value(1)).current;
   const [isDragging, setIsDragging] = useState(false);
 
@@ -69,7 +71,7 @@ export const DraggableBlockNew: React.FC<DraggableBlockNewProps> = ({
           useNativeDriver: false,
         }).start();
       },
-    })
+    }),
   ).current;
 
   return (
@@ -98,8 +100,8 @@ export const DraggableBlockNew: React.FC<DraggableBlockNewProps> = ({
                 style={[
                   styles.cell,
                   {
-                    width: cellSize * 0.6,
-                    height: cellSize * 0.6,
+                    width: cellSize,
+                    height: cellSize,
                     backgroundColor: cell === 1 ? block.color : 'transparent',
                   },
                   cell === 1 && styles.filledCell,
@@ -131,7 +133,7 @@ const styles = StyleSheet.create({
   },
   cell: {
     borderRadius: 4,
-    margin: 1.5,
+    margin: 0.5,
   },
   filledCell: {
     elevation: 1,

@@ -54,11 +54,20 @@ export const placeBlock = (
   const newBoard = board.map(row => [...row]);
   const { pattern, color } = block;
   
+  console.log('placeBlock执行:', {
+    blockId: block.id,
+    pattern,
+    color,
+    startRow,
+    startCol
+  });
+  
   for (let row = 0; row < pattern.length; row++) {
     for (let col = 0; col < pattern[row].length; col++) {
       if (pattern[row][col] === 1) {
         const boardRow = startRow + row;
         const boardCol = startCol + col;
+        console.log(`放置单元格: (${boardRow}, ${boardCol}) = ${color}`);
         newBoard[boardRow][boardCol] = color; // 存储方块的颜色
       }
     }
@@ -72,9 +81,12 @@ export const clearCompleteLines = (board: string[][]): { newBoard: string[][], c
   let newBoard = board.map(row => [...row]);
   let clearedLines = 0;
   
+  console.log('开始检查完整行列');
+  
   // 检查并清除完整的行
   for (let row = 0; row < 10; row++) {
     if (newBoard[row].every(cell => cell !== '')) {
+      console.log('清除完整行:', row);
       newBoard[row] = Array(10).fill('');
       clearedLines++;
     }
@@ -83,6 +95,7 @@ export const clearCompleteLines = (board: string[][]): { newBoard: string[][], c
   // 检查并清除完整的列
   for (let col = 0; col < 10; col++) {
     if (newBoard.every(row => row[col] !== '')) {
+      console.log('清除完整列:', col);
       for (let row = 0; row < 10; row++) {
         newBoard[row][col] = '';
       }
@@ -90,6 +103,7 @@ export const clearCompleteLines = (board: string[][]): { newBoard: string[][], c
     }
   }
   
+  console.log('清除完成，总清除行列数:', clearedLines);
   return { newBoard, clearedLines };
 };
 

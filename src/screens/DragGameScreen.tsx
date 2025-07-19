@@ -74,9 +74,9 @@ export const DragGameScreen: React.FC = () => {
           const boardRelativeX = dropX - pageX;
           const boardRelativeY = dropY - pageY;
           
-          // 转换为游戏板坐标
-          const col = Math.floor(boardRelativeX / CELL_SIZE);
-          const row = Math.floor(boardRelativeY / CELL_SIZE);
+          // 转换为游戏板坐标，确保在有效范围内
+          const col = Math.max(0, Math.min(9, Math.floor(boardRelativeX / CELL_SIZE)));
+          const row = Math.max(0, Math.min(9, Math.floor(boardRelativeY / CELL_SIZE)));
 
           console.log('拖拽坐标调试:', {
             dropX, dropY, pageX, pageY,
@@ -84,12 +84,6 @@ export const DragGameScreen: React.FC = () => {
             row, col, CELL_SIZE,
             blockPattern: block.pattern
           });
-
-          // 检查是否在游戏板范围内
-          if (row < 0 || row >= 10 || col < 0 || col >= 10) {
-            console.log('超出游戏板范围:', { row, col });
-            return; // 不在游戏板范围内，不做任何操作
-          }
 
           // 检查是否可以放置方块并执行放置逻辑
           performBlockPlacement(block, row, col);
@@ -102,29 +96,41 @@ export const DragGameScreen: React.FC = () => {
   // 执行方块放置的具体逻辑
   const performBlockPlacement = useCallback(
     (block: BlockShape, row: number, col: number) => {
+      console.log('开始放置方块:', {
+        blockId: block.id,
+        blockColor: block.color,
+        blockPattern: block.pattern,
+        targetRow: row,
+        targetCol: col,
+      });
 
       // 检查是否可以放置方块
       if (canPlaceBlock(gameState.board, block, row, col)) {
+        console.log('方块可以放置');
         // 放置方块
         let newBoard = placeBlock(gameState.board, block, row, col);
-        
+
         // 清除完整的行和列
-        const { newBoard: clearedBoard, clearedLines } = clearCompleteLines(newBoard);
-        
+        const { newBoard: clearedBoard, clearedLines } =
+          clearCompleteLines(newBoard);
+
         // 计算分数
         const blockSize = getBlockSize(block);
         const earnedScore = calculateScore(clearedLines, blockSize);
-        
+
         // 移除已使用的方块
-        const newBlocks = gameState.currentBlocks.filter(b => b.id !== block.id);
-        
+        const newBlocks = gameState.currentBlocks.filter(
+          b => b.id !== block.id,
+        );
+
         // 如果所有方块都用完了，生成新的方块
-        const finalBlocks = newBlocks.length === 0 ? getRandomBlocks(3) : newBlocks;
-        
+        const finalBlocks =
+          newBlocks.length === 0 ? getRandomBlocks(3) : newBlocks;
+
         // 更新游戏状态
         const newScore = gameState.score + earnedScore;
         const newBestScore = Math.max(newScore, gameState.bestScore);
-        
+
         const newGameState = {
           ...gameState,
           board: clearedBoard,
@@ -132,16 +138,16 @@ export const DragGameScreen: React.FC = () => {
           bestScore: newBestScore,
           currentBlocks: finalBlocks,
         };
-        
+
         // 检查游戏是否结束
         if (isGameOver(clearedBoard, finalBlocks)) {
           newGameState.gameOver = true;
-          
+
           // 保存最高分
           if (newScore > gameState.bestScore) {
             saveBestScore(newScore);
           }
-          
+
           // 延迟显示游戏结束提示，让用户看到最后的放置效果
           setTimeout(() => {
             Alert.alert(
@@ -150,15 +156,15 @@ export const DragGameScreen: React.FC = () => {
               [
                 { text: '重新开始', onPress: resetGame },
                 { text: '确定', style: 'cancel' },
-              ]
+              ],
             );
           }, 500);
         }
-        
+
         setGameState(newGameState);
       }
     },
-    [gameState]
+    [gameState],
   );
 
   const resetGame = () => {
@@ -173,61 +179,52 @@ export const DragGameScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-        {/* 标题 */}
-        <View style={styles.header}>
-          <Text style={styles.title}>十方世界</Text>
-          <Text style={styles.subtitle}>TenGrid World</Text>
-        </View>
+      {/* 标题 */}
+      <View style={styles.header}>
+        <Text style={styles.title}>十方世界</Text>
+        <Text style={styles.subtitle}>TenGrid World</Text>
+      </View>
 
-        {/* 分数显示 */}
-        <View style={styles.scoreContainer}>
-          <View style={styles.scoreItem}>
-            <Text style={styles.scoreLabel}>分数</Text>
-            <Text style={styles.scoreValue}>{gameState.score}</Text>
-          </View>
-          <View style={styles.scoreItem}>
-            <Text style={styles.scoreLabel}>最高分</Text>
-            <Text style={styles.scoreValue}>{gameState.bestScore}</Text>
-          </View>
+      {/* 分数显示 */}
+      <View style={styles.scoreContainer}>
+        <View style={styles.scoreItem}>
+          <Text style={styles.scoreLabel}>分数</Text>
+          <Text style={styles.scoreValue}>{gameState.score}</Text>
         </View>
-
-        {/* 游戏板 */}
-        <View 
-          ref={gameboardRef}
-          style={styles.gameboardContainer}
-        >
-          <GameBoard board={gameState.board} />
+        <View style={styles.scoreItem}>
+          <Text style={styles.scoreLabel}>最高分</Text>
+          <Text style={styles.scoreValue}>{gameState.bestScore}</Text>
         </View>
+      </View>
 
-        {/* 操作提示 */}
-        <Text style={styles.instructionText}>
-          拖拽方块到游戏板上放置
-        </Text>
+      {/* 游戏板 */}
+      <View ref={gameboardRef} style={styles.gameboardContainer}>
+        <GameBoard board={gameState.board} />
+      </View>
 
-        {/* 当前方块 */}
-        <View style={styles.blocksContainer}>
-          <Text style={styles.blocksTitle}>可用方块</Text>
-          <View style={styles.blocksRow}>
-            {gameState.currentBlocks.map((block, index) => (
-              <View key={`${block.id}-${index}`} style={styles.blockWrapper}>
-                <DraggableBlockNew
-                  block={block}
-                  cellSize={CELL_SIZE}
-                  onDrop={handleBlockDrop}
-                  disabled={gameState.gameOver}
-                />
-              </View>
-            ))}
-          </View>
+      {/* 当前方块 */}
+      <View style={styles.blocksContainer}>
+        <View style={styles.blocksRow}>
+          {gameState.currentBlocks.map((block, index) => (
+            <View key={`${block.id}-${index}`} style={styles.blockWrapper}>
+              <DraggableBlockNew
+                block={block}
+                cellSize={CELL_SIZE}
+                onDrop={handleBlockDrop}
+                disabled={gameState.gameOver}
+              />
+            </View>
+          ))}
         </View>
+      </View>
 
-        {/* 控制按钮 */}
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.resetButton} onPress={resetGame}>
-            <Text style={styles.buttonText}>重新开始</Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
+      {/* 控制按钮 */}
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity style={styles.resetButton} onPress={resetGame}>
+          <Text style={styles.buttonText}>重新开始</Text>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
   );
 };
 
